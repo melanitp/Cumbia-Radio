@@ -4,83 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cumbia Radio - Live 24/7</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; }
-        #song-list { list-style: none; padding: 0; }
-        #song-list li { margin: 5px 0; }
-        .mute-button { background: red; color: white; border: none; padding: 10px; cursor: pointer; }
-        audio { width: 100%; max-width: 400px; margin-top: 20px; }
-        @media (max-width: 600px) { body { font-size: 14px; } }
+        body {
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            background: black;
+            color: white;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        #current-song {
+            font-size: 1.2rem;
+            font-weight: 400;
+            margin-bottom: 20px;
+        }
+        .audio-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        audio {
+            width: 100%;
+            max-width: 400px;
+        }
+        .mute-button {
+            background: #1DB954;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+        .song-list {
+            list-style: none;
+            padding: 0;
+            font-size: 1rem;
+        }
+        .song-list li {
+            margin: 5px 0;
+            opacity: 0.8;
+        }
+        .ad-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
-    <h1>🎶 Cumbia Radio - Live 24/7 🎶</h1>
-    
-    <audio id="audio-player" autoplay muted playsinline controls>
-        <source id="audio-source" src="" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-    
-    <button class="mute-button" onclick="toggleMute()">🔇 Mute</button>
-
-    <h2>Now Playing:</h2>
-    <p id="current-song">Loading...</p>
-
-    <h2>Next Songs:</h2>
-    <ul id="song-list"></ul>
-
+    <div class="container">
+        <h1>🎶 CUMBIA RADIO 🎶</h1>
+        <p id="current-song">Loading...</p>
+        <div class="audio-container">
+            <audio id="audio-player" autoplay muted playsinline controls>
+                <source id="audio-source" src="" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            <button class="mute-button" onclick="toggleMute()">🔇 Mute</button>
+        </div>
+        <h2>Next Songs:</h2>
+        <ul class="song-list" id="song-list"></ul>
+        <div class="ad-section">Ad Space - Your Advertisement Here</div>
+    </div>
     <script>
+        const backendURL = "https://cumbia-radio.up.railway.app";
+        
         async function updateSongInfo() {
             try {
-                const response = await fetch('/current-song');
+                const response = await fetch(`${backendURL}/current-song`);
                 const data = await response.json();
-    
+
                 document.getElementById('current-song').innerText = data.current;
-                document.getElementById('audio-source').src = '/stream?nocache=' + new Date().getTime();
+                document.getElementById('audio-source').src = `${backendURL}/stream?nocache=` + new Date().getTime();
                 document.getElementById('audio-player').load();
-    
-                // 🔄 Sync song position based on server's song start time
-                const songStartTime = data.songStartTime;
-                const elapsedTime = (Date.now() - songStartTime) / 1000; // Convert ms to seconds
-    
+
                 let audio = document.getElementById('audio-player');
-                audio.currentTime = elapsedTime; // Jump to correct part of the song
-                
-                // 🔊 Force unmuted playback
                 audio.muted = false;
-                audio.play()
-                    .then(() => console.log("Autoplay successful ✅"))
-                    .catch(error => {
-                        console.warn("Autoplay blocked 🚨 Waiting for user interaction...");
-    
-                        // Wait for user interaction (click/tap) to start playing
-                        document.body.addEventListener("click", async () => {
-                            audio.muted = false;
-                            await audio.play();
-                            console.log("User interaction started playback ✅");
-                        }, { once: true });
-                    });
-    
-                const songList = document.getElementById('song-list');
-                songList.innerHTML = data.next.map(song => `<li>${song}</li>`).join('');
+                audio.play().catch(error => {
+                    document.body.addEventListener("click", async () => {
+                        await audio.play();
+                    }, { once: true });
+                });
+
+                document.getElementById('song-list').innerHTML = data.next.map(song => `<li>${song}</li>`).join('');
             } catch (error) {
                 console.error('Error fetching song info:', error);
             }
         }
-    
-        let audio = document.getElementById('audio-player');
-    
-        // 🔄 Try to autoplay when page loads
-        window.addEventListener("load", () => {
-            updateSongInfo();
-        });
-    
-        // ⏭ Move to next song when current one ends
-        audio.addEventListener("ended", function () {
-            updateSongInfo();
-        });
-    
-        updateSongInfo(); // Initial song load
-    </script>                
+
+        function toggleMute() {
+            let audio = document.getElementById('audio-player');
+            audio.muted = !audio.muted;
+        }
+
+        window.addEventListener("load", updateSongInfo);
+        document.getElementById('audio-player').addEventListener("ended", updateSongInfo);
+    </script>
 </body>
 </html>

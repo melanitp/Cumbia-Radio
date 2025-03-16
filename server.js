@@ -4,9 +4,14 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+// Updated CORS settings
+app.use(cors({
+    origin: "*",  // Allow all frontend requests
+    methods: ["GET"],
+}));
+
 app.use(express.static('public')); // Serves frontend files
 
 const musicFolder = path.join(__dirname, 'music');
@@ -17,6 +22,9 @@ let songStartTime = Date.now(); // Track when the current song started
 
 // 🔄 Get currently playing song + next 5 tracks
 function getCurrentAndNextSongs() {
+    if (!playlist || playlist.length === 0) {
+        return { error: "No songs available" };
+    }
     return {
         current: playlist[currentIndex],
         next: playlist.slice(currentIndex + 1, currentIndex + 6),
@@ -26,11 +34,19 @@ function getCurrentAndNextSongs() {
 
 // 🎶 API: Get current song info
 app.get('/current-song', (req, res) => {
-    res.json(getCurrentAndNextSongs());
+    const songData = getCurrentAndNextSongs();
+    if (songData.error) {
+        return res.status(500).json(songData);
+    }
+    res.json(songData);
 });
 
 // 🎧 API: Stream current song with correct timestamp
 app.get('/stream', (req, res) => {
+    if (!playlist || playlist.length === 0) {
+        return res.status(500).send("No songs available to stream");
+    }
+    
     const songPath = path.join(musicFolder, playlist[currentIndex]);
     const stat = fs.statSync(songPath);
     const fileSize = stat.size;
@@ -57,8 +73,10 @@ app.get('/stream', (req, res) => {
 
 // ⏩ Move to next song when current song finishes
 setInterval(() => {
-    currentIndex = (currentIndex + 1) % playlist.length; // Loop through playlist
-    songStartTime = Date.now(); // Reset start time for the new song
+    if (playlist.length > 0) {
+        currentIndex = (currentIndex + 1) % playlist.length; // Loop through playlist
+        songStartTime = Date.now(); // Reset start time for the new song
+    }
 }, 30000); // Adjust time based on song length
 
 app.listen(PORT, () => console.log(`🚀 Cumbia Radio Server running on http://localhost:${PORT}`));

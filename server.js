@@ -8,8 +8,8 @@ const PORT = process.env.PORT || 4000;
 
 // Updated CORS settings
 app.use(cors({
-    origin: "*",  // Allow all frontend requests
-    methods: ["GET"],
+    origin: "https://cumbia-radio.vercel.app",  // Allow only Vercel frontend
+    methods: ["GET"]
 }));
 
 app.use(express.static('public')); // Serves frontend files
@@ -79,4 +79,7 @@ setInterval(() => {
     }
 }, 30000); // Adjust time based on song length
 
-app.listen(PORT, () => console.log(`🚀 Cumbia Radio Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`🚀 Cumbia Radio Server running on port ${PORT}`);
+    console.log(`🌍 Accessible at: https://cumbia-radio.up.railway.app`);
+});

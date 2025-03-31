@@ -94,3 +94,12 @@ app.listen(PORT, () => {
     console.log(`🚀 Cumbia Radio Server running on port ${PORT}`);
     console.log(`🌍 Accessible at: https://cumbia-radio.up.railway.app`);
 });
+
+// 🛡️ Prevent Railway from stopping the server
+process.on("SIGTERM", () => {
+    console.log("🛑 Received SIGTERM. Ignoring to keep server alive.");
+});
+
+// 🧠 Keep Node.js process alive (Railway sometimes needs this)
+setInterval(() => {}, 1 << 30);
+

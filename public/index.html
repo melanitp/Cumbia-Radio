@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cumbia Radio - Live 24/7</title>
+    <title>Cumbia Radio - En Vivo 24/7</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -76,27 +76,30 @@
 <body>
     <div class="container">
         <h1>🎶 CUMBIA RADIO 🎶</h1>
-        <p id="current-song">Loading...</p>
+        <p><strong>Reproduciendo ahora:</strong></p>
+        <p id="current-song">Cargando...</p>
         <div class="audio-container">
-            <audio id="audio-player" autoplay muted playsinline controls>
+            <audio id="audio-player" autoplay muted playsinline>
                 <source id="audio-source" src="" type="audio/mpeg">
-                Your browser does not support the audio element.
+                Tu navegador no soporta el elemento de audio.
             </audio>
-            <button class="mute-button" onclick="toggleMute()">🔇 Mute</button>
+            <button class="mute-button" onclick="toggleMute()">🔇 Silenciar</button>
         </div>
-        <h2>Next Songs:</h2>
+        <h2>Siguientes canciones:</h2>
         <ul class="song-list" id="song-list"></ul>
-        <div class="ad-section">Ad Space - Your Advertisement Here</div>
+        <div class="ad-section">Espacio publicitario - Tu anuncio aquí</div>
     </div>
     <script>
         const backendURL = "https://cumbia-radio-production.up.railway.app";
-        
+
         async function updateSongInfo() {
             try {
                 const response = await fetch(`${backendURL}/current-song`);
                 const data = await response.json();
 
-                document.getElementById('current-song').innerText = data.current;
+                const formatName = (name) => name.replace(/\.mp3$/, "");
+
+                document.getElementById('current-song').innerText = formatName(data.current);
                 document.getElementById('audio-source').src = `${backendURL}/stream?nocache=` + new Date().getTime();
                 document.getElementById('audio-player').load();
 
@@ -108,7 +111,7 @@
                     }, { once: true });
                 });
 
-                document.getElementById('song-list').innerHTML = data.next.map(song => `<li>${song}</li>`).join('');
+                document.getElementById('song-list').innerHTML = data.next.map(song => `<li>${formatName(song)}</li>`).join('');
             } catch (error) {
                 console.error('Error fetching song info:', error);
             }

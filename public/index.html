@@ -52,14 +52,12 @@
             font-size: 1rem;
             margin-top: 10px;
         }
-        .song-list {
-            list-style: none;
-            padding: 0;
-            font-size: 1rem;
-        }
-        .song-list li {
-            margin: 5px 0;
-            opacity: 0.8;
+        #song-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
         .ad-section {
             background: rgba(255, 255, 255, 0.1);
@@ -78,15 +76,14 @@
         <h1>🎶 CUMBIA RADIO 🎶</h1>
         <p><strong>Reproduciendo ahora:</strong></p>
         <p id="current-song">Cargando...</p>
+        <img id="song-image" src="" alt="Carátula de la canción actual" style="display: none;" />
         <div class="audio-container">
             <audio id="audio-player" autoplay muted playsinline>
                 <source id="audio-source" src="" type="audio/mpeg">
                 Tu navegador no soporta el elemento de audio.
             </audio>
-            <button class="mute-button" onclick="toggleMute()">🔇 Silenciar</button>
+            <button class="mute-button" id="mute-button" onclick="toggleMute()">🔇 Silenciar</button>
         </div>
-        <h2>Siguientes canciones:</h2>
-        <ul class="song-list" id="song-list"></ul>
         <div class="ad-section">Espacio publicitario - Tu anuncio aquí</div>
     </div>
     <script>
@@ -99,9 +96,16 @@
 
                 const formatName = (name) => name.replace(/\.mp3$/, "");
 
-                document.getElementById('current-song').innerText = formatName(data.current);
+                const currentSong = formatName(data.current);
+                document.getElementById('current-song').innerText = currentSong;
                 document.getElementById('audio-source').src = `${backendURL}/stream?nocache=` + new Date().getTime();
                 document.getElementById('audio-player').load();
+
+                // Optional: Try to fetch a cover image (mocked for now)
+                const coverURL = `/covers/${data.current.replace(/\.mp3$/, '.jpg')}`; // assumes a covers folder with images
+                const image = document.getElementById("song-image");
+                image.src = coverURL;
+                image.style.display = "block";
 
                 let audio = document.getElementById('audio-player');
                 audio.muted = false;
@@ -111,7 +115,6 @@
                     }, { once: true });
                 });
 
-                document.getElementById('song-list').innerHTML = data.next.map(song => `<li>${formatName(song)}</li>`).join('');
             } catch (error) {
                 console.error('Error fetching song info:', error);
             }
@@ -119,7 +122,9 @@
 
         function toggleMute() {
             let audio = document.getElementById('audio-player');
+            let button = document.getElementById('mute-button');
             audio.muted = !audio.muted;
+            button.innerText = audio.muted ? "🔇 Silenciar" : "🔊 Sonando";
         }
 
         window.addEventListener("load", updateSongInfo);

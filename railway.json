@@ -1,0 +1,16 @@
+{
+    "build": {
+      "env": {
+        "PORT": "8080"
+      }
+    },
+    "start": "npm start",
+    "services": [
+      {
+        "name": "web",
+        "port": 8080,
+        "protocol": "http"
+      }
+    ]
+  }
+  

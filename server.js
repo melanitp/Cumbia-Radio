@@ -16,7 +16,17 @@ app.use(cors({
 app.use(express.static('public')); // Serves frontend files
 
 const musicFolder = path.join(__dirname, 'music');
-let playlist = fs.readdirSync(musicFolder).filter(file => file.endsWith('.mp3'));
+let playlist = [];
+try {
+    if (fs.existsSync(musicFolder)) {
+        playlist = fs.readdirSync(musicFolder).filter(file => file.endsWith('.mp3'));
+        console.log("🎵 Playlist loaded:", playlist);
+    } else {
+        console.warn("⚠️ music/ folder not found!");
+    }
+} catch (error) {
+    console.error("❌ Error reading music folder:", error);
+}
 
 let currentIndex = 0;
 let songStartTime = Date.now(); // Track when the current song started
